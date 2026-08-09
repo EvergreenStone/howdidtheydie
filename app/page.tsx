@@ -36,10 +36,19 @@ export default async function HomePage() {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
   );
 
+  const fallbackNames = [
+    "Robin Williams",
+    "Diane Keaton",
+    "Matthew Perry",
+    "Michael Jackson",
+    "Whitney Houston",
+  ];
+
 
   const [
     { data: recentData },
     { data: trendingData },
+    { data: fallbackData },
     { count: profileCount },
     { count: sourceCount },
     { count: analysisCount },
@@ -58,6 +67,14 @@ export default async function HomePage() {
       hours_back: 72,
       result_limit: 5,
     }),
+
+    supabase
+      .from("people")
+      .select(
+        "id, name, slug, birth_date, death_date, occupation, official_cause, image_url",
+      )
+      .eq("status", "published")
+      .in("name", fallbackNames),
 
     supabase
       .from("people")
@@ -81,11 +98,23 @@ export default async function HomePage() {
 
   const recent = (recentData ?? []) as Person[];
   const trending = (trendingData ?? []) as Person[];
+  const fallback = (fallbackData ?? []) as Person[];
 
-  // Before the site has enough traffic, use recent profiles as a temporary
-  // discovery fallback. As soon as profile views exist, this becomes real trending.
-  const popular = trending.length > 0 ? trending.slice(0, 5) : recent.slice(0, 5);
-  const popularLabel = trending.length > 0 ? "Trending now:" : "Explore profiles:";
+  const fallbackByName = new Map(
+    fallback.map((person) => [person.name, person]),
+  );
+
+  const curatedFallback = fallbackNames
+    .map((name) => fallbackByName.get(name))
+    .filter((person): person is Person => Boolean(person));
+
+  // Use real 72-hour traffic when available. Until then, show recognizable
+  // curated profiles rather than random recent imports.
+  const popular =
+    trending.length > 0 ? trending.slice(0, 4) : curatedFallback.slice(0, 4);
+
+  const popularLabel =
+    trending.length > 0 ? "Trending now:" : "Explore profiles:";
 
   return (
     <main className="min-h-screen bg-[#f4f1ea] text-[#1d2a2a]">
@@ -151,12 +180,12 @@ export default async function HomePage() {
               </form>
 
               {popular.length > 0 && (
-                <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+                <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-sm lg:flex-nowrap lg:whitespace-nowrap">
                   <span className="font-semibold text-[#66706d]">
                     {popularLabel}
                   </span>
                   {popular.map((person, index) => (
-                    <span key={person.id} className="flex items-center gap-2">
+                    <span key={person.id} className="flex items-center gap-1.5">
                       <a
                         href={`/person/${person.slug}`}
                         className="font-semibold text-[#a65336] hover:underline"
