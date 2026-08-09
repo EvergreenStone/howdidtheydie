@@ -1,5 +1,40 @@
+import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import AuthButton from "@/components/AuthButton";
+
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://howdidtheydie.org"),
+  title: "How Did They Die? | Official Findings, Evidence & Community Analysis",
+  description:
+    "Explore official causes of death, supporting evidence, cited sources, and community analysis for notable people.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "HowDidTheyDie.org",
+    title: "How Did They Die?",
+    description:
+      "Official findings. Community analysis. Visible evidence.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "How Did They Die? — Official findings. Community analysis. Visible evidence.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How Did They Die?",
+    description:
+      "Official findings. Community analysis. Visible evidence.",
+    images: ["/opengraph-image"],
+  },
+};
 
 type Person = {
   id: string;
