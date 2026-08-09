@@ -20,7 +20,7 @@ export const metadata: Metadata = {
       "Official findings. Community analysis. Visible evidence.",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/share-card",
         width: 1200,
         height: 630,
         alt: "How Did They Die? — Official findings. Community analysis. Visible evidence.",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     title: "How Did They Die?",
     description:
       "Official findings. Community analysis. Visible evidence.",
-    images: ["/opengraph-image"],
+    images: ["/share-card"],
   },
 };
 
