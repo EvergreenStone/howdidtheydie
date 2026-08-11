@@ -42,7 +42,7 @@ export default async function SearchPage({
   let results: SearchResult[] = [];
 
   if (query) {
-    const { data, error } = await supabase.rpc("search_people_fuzzy", {
+    const { data, error } = await supabase.rpc("search_people_smart", {
       search_query: query,
       result_limit: 25,
     });
@@ -69,9 +69,9 @@ export default async function SearchPage({
     results.some((person) => person.name.toLowerCase() === query.toLowerCase());
 
   return (
-    <main className="min-h-screen bg-[#f4f1ea] text-[#1d2a2a]">
+    <main className="min-h-screen overflow-x-hidden bg-[#f4f1ea] text-[#1d2a2a]">
       <header className="border-b border-[#d9d3c7] bg-[#f8f6f1]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <a href="/" className="leading-none">
             <p className="text-2xl font-bold tracking-[-0.045em]">
               howdidtheydie<span className="text-[#a65336]">.org</span>
@@ -90,12 +90,12 @@ export default async function SearchPage({
         </div>
       </header>
 
-      <section className="mx-auto max-w-5xl px-6 py-12">
+      <section className="mx-auto max-w-5xl px-4 py-9 sm:px-6 sm:py-12">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#a65336]">
           Search
         </p>
 
-        <h1 className="mt-3 text-5xl font-semibold tracking-[-0.05em]">
+        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
           Find a person.
         </h1>
 

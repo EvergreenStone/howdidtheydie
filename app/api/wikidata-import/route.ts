@@ -18,11 +18,9 @@ type WikidataClaim = {
 
 type WikidataEntity = {
   id?: string;
-  pageid?: number;
-  title?: string;
-  missing?: string;
   labels?: Record<string, { language: string; value: string }>;
   descriptions?: Record<string, { language: string; value: string }>;
+  aliases?: Record<string, Array<{ language: string; value: string }>>;
   claims?: Record<string, WikidataClaim[]>;
   sitelinks?: Record<string, { site: string; title: string }>;
 };
@@ -34,23 +32,6 @@ function clamp(value: number, min: number, max: number) {
 function qidFromEntityUrl(value?: string) {
   const match = value?.match(/\/(Q\d+)$/);
   return match?.[1] ?? null;
-}
-
-function normalizeEntities(value: unknown): WikidataEntity[] {
-  if (Array.isArray(value)) {
-    return value as WikidataEntity[];
-  }
-
-  if (value && typeof value === "object") {
-    return Object.entries(value as Record<string, WikidataEntity>).map(
-      ([id, entity]) => ({
-        id: entity.id ?? id,
-        ...entity,
-      }),
-    );
-  }
-
-  return [];
 }
 
 function getBestClaim(claims: WikidataClaim[] | undefined) {
@@ -109,21 +90,23 @@ function getDateFromClaim(claims: WikidataClaim[] | undefined) {
   return `${match[1]}-${match[2]}-${match[3]}`;
 }
 
-function labelFor(id: string | null, labels: Record<string, string>) {
+function labelFor(
+  id: string | null,
+  labels: Record<string, string>,
+) {
   if (!id) return null;
   return labels[id] ?? id;
 }
 
-async function fetchEntities(ids: string[]) {
-  if (ids.length === 0) return {} as Record<string, WikidataEntity>;
 
+async function searchWikidataByName(name: string) {
   const url = new URL("https://www.wikidata.org/w/api.php");
-  url.searchParams.set("action", "wbgetentities");
-  url.searchParams.set("ids", ids.join("|"));
-  url.searchParams.set("props", "labels|descriptions|claims|sitelinks");
-  url.searchParams.set("languages", "en");
-  url.searchParams.set("languagefallback", "1");
-  url.searchParams.set("sitefilter", "enwiki");
+  url.searchParams.set("action", "wbsearchentities");
+  url.searchParams.set("search", name);
+  url.searchParams.set("language", "en");
+  url.searchParams.set("uselang", "en");
+  url.searchParams.set("type", "item");
+  url.searchParams.set("limit", "10");
   url.searchParams.set("format", "json");
   url.searchParams.set("origin", "*");
 
@@ -136,15 +119,48 @@ async function fetchEntities(ids: string[]) {
   });
 
   if (!response.ok) {
+    throw new Error(`Wikidata name search returned ${response.status}.`);
+  }
+
+  const json = await response.json();
+
+  return (json?.search ?? [])
+    .map((item: { id?: string }) => item.id)
+    .filter((id: unknown): id is string => typeof id === "string");
+}
+
+async function fetchEntities(ids: string[]) {
+  if (ids.length === 0) return {} as Record<string, WikidataEntity>;
+
+  const url = new URL("https://www.wikidata.org/w/api.php");
+  url.searchParams.set("action", "wbgetentities");
+  url.searchParams.set("ids", ids.join("|"));
+  url.searchParams.set("props", "labels|descriptions|aliases|claims|sitelinks");
+  url.searchParams.set("languages", "en");
+  url.searchParams.set("languagefallback", "1");
+  url.searchParams.set("sitefilter", "enwiki");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("formatversion", "2");
+  url.searchParams.set("origin", "*");
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "HowDidTheyDie.org/0.2 (https://howdidtheydie.org)",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
     throw new Error(`Wikidata entity API returned ${response.status}.`);
   }
 
   const json = await response.json();
-  const entities = normalizeEntities(json?.entities);
+  const entities = (json?.entities ?? []) as WikidataEntity[];
 
   return Object.fromEntries(
     entities
-      .filter((entity) => entity.id && !entity.missing)
+      .filter((entity) => entity.id)
       .map((entity) => [entity.id as string, entity]),
   ) as Record<string, WikidataEntity>;
 }
@@ -152,55 +168,168 @@ async function fetchEntities(ids: string[]) {
 async function fetchLabels(ids: string[]) {
   if (ids.length === 0) return {} as Record<string, string>;
 
+  const url = new URL("https://www.wikidata.org/w/api.php");
+  url.searchParams.set("action", "wbgetentities");
+  url.searchParams.set("ids", ids.join("|"));
+  url.searchParams.set("props", "labels");
+  url.searchParams.set("languages", "en");
+  url.searchParams.set("languagefallback", "1");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("formatversion", "2");
+  url.searchParams.set("origin", "*");
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "HowDidTheyDie.org/0.2 (https://howdidtheydie.org)",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Wikidata label API returned ${response.status}.`);
+  }
+
+  const json = await response.json();
+  const entities = (json?.entities ?? []) as WikidataEntity[];
+
   const labels: Record<string, string> = {};
 
-  // Fetch labels in chunks so we do not exceed normal Wikidata API ID limits.
-  for (let i = 0; i < ids.length; i += 50) {
-    const chunk = ids.slice(i, i + 50);
-
-    const url = new URL("https://www.wikidata.org/w/api.php");
-    url.searchParams.set("action", "wbgetentities");
-    url.searchParams.set("ids", chunk.join("|"));
-    url.searchParams.set("props", "labels");
-    url.searchParams.set("languages", "en");
-    url.searchParams.set("languagefallback", "1");
-    url.searchParams.set("format", "json");
-    url.searchParams.set("origin", "*");
-
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "HowDidTheyDie.org/0.3 (https://howdidtheydie.org)",
-      },
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Wikidata label API returned ${response.status}.`);
-    }
-
-    const json = await response.json();
-    const entities = normalizeEntities(json?.entities);
-
-    for (const entity of entities) {
-      if (!entity.id || entity.missing) continue;
-
-      const english = entity.labels?.en?.value;
-      if (english) labels[entity.id] = english;
-    }
+  for (const entity of entities) {
+    if (!entity.id) continue;
+    const english = entity.labels?.en?.value;
+    if (english) labels[entity.id] = english;
   }
 
   return labels;
+}
+
+
+async function buildPeopleFromQids(
+  orderedQids: string[],
+  deathDates: Map<string, string>,
+  limit: number,
+) {
+  if (orderedQids.length === 0) return [];
+
+  const entityMap = await fetchEntities(orderedQids.slice(0, 50));
+
+  const referencedIds = new Set<string>();
+
+  for (const qid of orderedQids) {
+    const entity = entityMap[qid];
+    if (!entity) continue;
+
+    for (const id of getAllEntityIdsFromClaims(entity.claims?.P106)) {
+      referencedIds.add(id);
+    }
+
+    for (const id of getAllEntityIdsFromClaims(entity.claims?.P509)) {
+      referencedIds.add(id);
+    }
+
+    const mannerId = getEntityIdFromClaim(entity.claims?.P1196);
+    if (mannerId) referencedIds.add(mannerId);
+  }
+
+  const referencedArray = Array.from(referencedIds).slice(0, 50);
+  const labels = await fetchLabels(referencedArray);
+
+  return orderedQids
+    .map((qid) => {
+      const entity = entityMap[qid];
+      if (!entity) return null;
+
+      const name = entity.labels?.en?.value;
+      const enwikiTitle = entity.sitelinks?.enwiki?.title;
+
+      // Notability gate: require an English Wikipedia article.
+      // Cause of death is intentionally NOT required anymore.
+      if (!name || !enwikiTitle) return null;
+
+      const deathDate =
+        getDateFromClaim(entity.claims?.P570) ??
+        deathDates.get(qid) ??
+        null;
+
+      // We still only import deceased people.
+      if (!deathDate) return null;
+
+      const occupationIds = getAllEntityIdsFromClaims(
+        entity.claims?.P106,
+      ).slice(0, 3);
+
+      const causeIds = getAllEntityIdsFromClaims(entity.claims?.P509);
+      const mannerId = getEntityIdFromClaim(entity.claims?.P1196);
+
+      const occupations = occupationIds
+        .map((id) => labelFor(id, labels))
+        .filter((value): value is string => Boolean(value));
+
+      const causes = causeIds
+        .map((id) => labelFor(id, labels))
+        .filter((value): value is string => Boolean(value));
+
+      const officialManner = labelFor(mannerId, labels);
+
+      return {
+        wikidataId: qid,
+        wikidataUrl: `https://www.wikidata.org/wiki/${qid}`,
+        wikipediaUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(
+          enwikiTitle.replace(/ /g, "_"),
+        )}`,
+        name,
+        aliases: (entity.aliases?.en ?? [])
+          .map((item) => item.value?.trim())
+          .filter((value): value is string => Boolean(value))
+          .filter((value) => value.toLowerCase() !== name.toLowerCase()),
+        birthDate: getDateFromClaim(entity.claims?.P569),
+        deathDate,
+        occupation: occupations.join(", ") || null,
+        officialCause: causes.join("; ") || null,
+        officialManner,
+      };
+    })
+    .filter(
+      (
+        person,
+      ): person is {
+        wikidataId: string;
+        wikidataUrl: string;
+        wikipediaUrl: string;
+        name: string;
+        aliases: string[];
+        birthDate: string | null;
+        deathDate: string;
+        occupation: string | null;
+        officialCause: string | null;
+        officialManner: string | null;
+      } => Boolean(person),
+    )
+    .slice(0, limit);
 }
 
 export async function GET(request: Request) {
   try {
     const requestUrl = new URL(request.url);
 
+    const requestedName = requestUrl.searchParams.get("name")?.trim();
+
+    if (requestedName) {
+      const qids = await searchWikidataByName(requestedName);
+      const people = await buildPeopleFromQids(qids, new Map(), 10);
+
+      return NextResponse.json({
+        people,
+        name: requestedName,
+        returned: people.length,
+      });
+    }
+
     const currentYear = new Date().getUTCFullYear();
 
     const requestedLimit = Number(
-      requestUrl.searchParams.get("limit") || "10",
+      requestUrl.searchParams.get("limit") || "25",
     );
     const requestedOffset = Number(
       requestUrl.searchParams.get("offset") || "0",
@@ -210,7 +339,7 @@ export async function GET(request: Request) {
     );
 
     const limit = clamp(
-      Number.isFinite(requestedLimit) ? requestedLimit : 10,
+      Number.isFinite(requestedLimit) ? requestedLimit : 25,
       1,
       50,
     );
@@ -223,14 +352,18 @@ export async function GET(request: Request) {
 
     const year = clamp(
       Number.isFinite(requestedYear) ? requestedYear : currentYear,
-      1900,
+      1800,
       currentYear,
     );
 
     const start = `${year}-01-01T00:00:00Z`;
     const end = `${year + 1}-01-01T00:00:00Z`;
 
-    // Keep SPARQL deliberately light: only get deceased-human QIDs + death dates.
+    // The old importer tried to join labels, occupations, causes, manner,
+    // and Wikipedia sitelinks inside one SPARQL query. That timed out.
+    //
+    // This query deliberately asks WDQS for ONLY QIDs + death dates
+    // inside one calendar year. Everything else comes from wbgetentities.
     const rawLimit = Math.min(limit * 5, 250);
     const rawOffset = offset * 5;
 
@@ -242,8 +375,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 SELECT DISTINCT ?person ?deathDate
 WHERE {
   ?person wdt:P31 wd:Q5 ;
-          wdt:P570 ?deathDate ;
-          wdt:P509 ?causeOfDeath .
+          wdt:P570 ?deathDate .
 
   FILTER(
     ?deathDate >= "${start}"^^xsd:dateTime &&
@@ -268,7 +400,7 @@ OFFSET ${rawOffset}
       sparqlResponse = await fetch(sparqlUrl, {
         headers: {
           Accept: "application/sparql-results+json",
-          "User-Agent": "HowDidTheyDie.org/0.3 (https://howdidtheydie.org)",
+          "User-Agent": "HowDidTheyDie.org/0.2 (https://howdidtheydie.org)",
         },
         cache: "no-store",
         signal: controller.signal,
@@ -316,87 +448,11 @@ OFFSET ${rawOffset}
       });
     }
 
-    const entityMap = await fetchEntities(orderedQids.slice(0, 50));
-
-    const referencedIds = new Set<string>();
-
-    for (const qid of orderedQids) {
-      const entity = entityMap[qid];
-      if (!entity) continue;
-
-      for (const id of getAllEntityIdsFromClaims(entity.claims?.P106)) {
-        referencedIds.add(id);
-      }
-
-      for (const id of getAllEntityIdsFromClaims(entity.claims?.P509)) {
-        referencedIds.add(id);
-      }
-
-      const mannerId = getEntityIdFromClaim(entity.claims?.P1196);
-      if (mannerId) referencedIds.add(mannerId);
-    }
-
-    const labels = await fetchLabels(Array.from(referencedIds));
-
-    const people = orderedQids
-      .map((qid) => {
-        const entity = entityMap[qid];
-        if (!entity) return null;
-
-        const name = entity.labels?.en?.value;
-        const enwikiTitle = entity.sitelinks?.enwiki?.title;
-
-        // Keep the initial seed limited to people with an English Wikipedia page.
-        if (!name || !enwikiTitle) return null;
-
-        const occupationIds = getAllEntityIdsFromClaims(
-          entity.claims?.P106,
-        ).slice(0, 3);
-
-        const causeIds = getAllEntityIdsFromClaims(entity.claims?.P509);
-        const mannerId = getEntityIdFromClaim(entity.claims?.P1196);
-
-        const occupations = occupationIds
-          .map((id) => labelFor(id, labels))
-          .filter((value): value is string => Boolean(value));
-
-        const causes = causeIds
-          .map((id) => labelFor(id, labels))
-          .filter((value): value is string => Boolean(value));
-
-        return {
-          wikidataId: qid,
-          wikidataUrl: `https://www.wikidata.org/wiki/${qid}`,
-          wikipediaUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(
-            enwikiTitle.replace(/ /g, "_"),
-          )}`,
-          name,
-          birthDate: getDateFromClaim(entity.claims?.P569),
-          deathDate:
-            getDateFromClaim(entity.claims?.P570) ??
-            deathDates.get(qid) ??
-            null,
-          occupation: occupations.join(", ") || null,
-          officialCause: causes.join("; ") || null,
-          officialManner: labelFor(mannerId, labels),
-        };
-      })
-      .filter(
-        (
-          person,
-        ): person is {
-          wikidataId: string;
-          wikidataUrl: string;
-          wikipediaUrl: string;
-          name: string;
-          birthDate: string | null;
-          deathDate: string;
-          occupation: string | null;
-          officialCause: string | null;
-          officialManner: string | null;
-        } => Boolean(person?.deathDate),
-      )
-      .slice(0, limit);
+    const people = await buildPeopleFromQids(
+      orderedQids,
+      deathDates,
+      limit,
+    );
 
     return NextResponse.json({
       people,

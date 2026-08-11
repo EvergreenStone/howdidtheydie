@@ -8,6 +8,7 @@ type ImportPerson = {
   wikidataUrl: string;
   wikipediaUrl: string | null;
   name: string;
+  aliases: string[];
   birthDate: string | null;
   deathDate: string;
   occupation: string | null;
@@ -56,7 +57,7 @@ export default function BulkImportPage() {
 
   const currentYear = new Date().getFullYear();
 
-  const [startYear, setStartYear] = useState(1950);
+  const [startYear, setStartYear] = useState(1850);
   const [endYear, setEndYear] = useState(currentYear);
   const [batchSize, setBatchSize] = useState(10);
   const [delayMs, setDelayMs] = useState(1500);
@@ -157,6 +158,7 @@ export default function BulkImportPage() {
 
       const row = {
         name: person.name,
+        aliases: person.aliases ?? [],
         slug,
         birth_date: person.birthDate,
         death_date: person.deathDate,
@@ -433,12 +435,11 @@ export default function BulkImportPage() {
         </p>
 
         <h1 className="mt-3 text-5xl font-semibold tracking-[-0.05em]">
-          Bulk import public figures.
+          Bulk import deceased public figures.
         </h1>
 
         <p className="mt-5 max-w-3xl text-lg leading-8 text-[#586260]">
-          This safer importer inserts each person individually. One bad record
-          can no longer cause an entire batch to fail.
+          This importer now includes notable deceased people even when Wikidata does not have a structured cause of death. Missing causes can be documented later.
         </p>
 
         <div className="mt-8 rounded-[26px] border border-[#d2ccc1] bg-white p-6 shadow-sm">
@@ -447,7 +448,7 @@ export default function BulkImportPage() {
               <span className="text-sm font-semibold">Start year</span>
               <input
                 type="number"
-                min={1900}
+                min={1800}
                 max={currentYear}
                 value={startYear}
                 disabled={running}
@@ -460,7 +461,7 @@ export default function BulkImportPage() {
               <span className="text-sm font-semibold">End year</span>
               <input
                 type="number"
-                min={1900}
+                min={1800}
                 max={currentYear}
                 value={endYear}
                 disabled={running}
