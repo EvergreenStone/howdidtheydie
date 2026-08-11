@@ -25,6 +25,19 @@ type WikidataEntity = {
   sitelinks?: Record<string, { site: string; title: string }>;
 };
 
+function normalizeEntities(value: unknown): WikidataEntity[] {
+  if (Array.isArray(value)) {
+    return value as WikidataEntity[];
+  }
+
+  if (value && typeof value === "object") {
+    return Object.values(value as Record<string, WikidataEntity>);
+  }
+
+  return [];
+}
+
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -156,7 +169,7 @@ async function fetchEntities(ids: string[]) {
   }
 
   const json = await response.json();
-  const entities = (json?.entities ?? []) as WikidataEntity[];
+  const entities = normalizeEntities(json?.entities);
 
   return Object.fromEntries(
     entities
@@ -191,7 +204,7 @@ async function fetchLabels(ids: string[]) {
   }
 
   const json = await response.json();
-  const entities = (json?.entities ?? []) as WikidataEntity[];
+  const entities = normalizeEntities(json?.entities);
 
   const labels: Record<string, string> = {};
 
