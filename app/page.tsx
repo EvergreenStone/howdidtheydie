@@ -152,19 +152,19 @@ export default async function HomePage() {
     trending.length > 0 ? "Trending now:" : "Explore profiles:";
 
   return (
-    <main className="min-h-screen bg-[#f4f1ea] text-[#1d2a2a]">
+    <main className="min-h-screen overflow-x-hidden bg-[#f4f1ea] text-[#1d2a2a]">
       <header className="border-b border-[#d9d3c7] bg-[#f8f6f1]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <a href="/" className="leading-none">
-            <p className="text-2xl font-bold tracking-[-0.045em]">
+            <p className="text-xl font-bold tracking-[-0.045em] sm:text-2xl">
               howdidtheydie<span className="text-[#a65336]">.org</span>
             </p>
-            <p className="mt-2 text-xs font-medium text-[#66706d]">
+            <p className="mt-2 max-w-[230px] text-[11px] font-medium leading-4 text-[#66706d] sm:max-w-none sm:text-xs">
               Official findings. Community analysis. Visible evidence.
             </p>
           </a>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <a
               href="/browse"
               className="hidden text-sm font-semibold text-[#586260] transition hover:text-[#a65336] md:inline"
@@ -177,18 +177,18 @@ export default async function HomePage() {
       </header>
 
       <section className="border-b border-[#d9d3c7]">
-        <div className="mx-auto max-w-7xl px-6 py-8 lg:py-9">
+        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-8 lg:py-9">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.28fr)_minmax(390px,0.72fr)] lg:items-start">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#a65336]">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase leading-5 tracking-[0.12em] text-[#a65336] sm:text-sm sm:tracking-[0.18em]">
                 Community-reviewed • Evidence-based • Continuously updated
               </p>
 
-              <h1 className="mt-4 whitespace-nowrap text-[3.6rem] font-semibold leading-none tracking-[-0.055em] xl:text-[4rem]">
+              <h1 className="mt-4 text-[2.65rem] font-semibold leading-[0.98] tracking-[-0.055em] sm:text-[3.3rem] lg:whitespace-nowrap lg:text-[3.6rem] xl:text-[4rem]">
                 How did they <span className="text-[#a65336]">really</span> die?
               </h1>
 
-              <p className="mt-5 max-w-[760px] text-lg leading-8 text-[#586260]">
+              <p className="mt-5 max-w-[760px] text-base leading-7 text-[#586260] sm:text-lg sm:leading-8">
                 Explore official causes of death, reported explanations, community
                 analysis, and the evidence behind each claim. Belief and evidence
                 are shown separately so you can see what is documented and what
@@ -197,7 +197,7 @@ export default async function HomePage() {
 
               <form
                 action="/search"
-                className="mt-8 flex max-w-[790px] flex-col gap-2 rounded-2xl border border-[#cfc8bc] bg-white p-2.5 shadow-[0_12px_34px_rgba(29,42,42,0.09)] sm:flex-row"
+                className="mt-6 flex w-full max-w-[790px] flex-col gap-2 rounded-2xl border border-[#cfc8bc] bg-white p-2 shadow-[0_12px_34px_rgba(29,42,42,0.09)] sm:mt-8 sm:flex-row sm:p-2.5"
               >
                 <input
                   name="q"
@@ -208,7 +208,7 @@ export default async function HomePage() {
                 />
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#1d2a2a] px-9 py-3.5 font-semibold text-white transition hover:bg-[#31413f]"
+                  className="w-full rounded-xl bg-[#1d2a2a] px-9 py-3.5 font-semibold text-white transition hover:bg-[#31413f] sm:w-auto"
                 >
                   Search
                 </button>
@@ -235,7 +235,7 @@ export default async function HomePage() {
                 </div>
               )}
 
-              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[#66706d]">
+              <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#66706d] sm:gap-x-5">
                 <span>✓ Cited sources</span>
                 <span>✓ Anonymous voting</span>
                 <span>✓ Community reviewed</span>
@@ -243,12 +243,12 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="rounded-[22px] bg-[#1d2a2a] p-5 text-white shadow-[0_16px_38px_rgba(29,42,42,0.13)]">
+            <div className="min-w-0 rounded-[22px] bg-[#1d2a2a] p-4 text-white shadow-[0_16px_38px_rgba(29,42,42,0.13)] sm:p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#e0aa8c]">
                 How confidence works
               </p>
 
-              <h2 className="mt-2.5 text-[1.75rem] font-semibold leading-tight tracking-[-0.04em]">
+              <h2 className="mt-2.5 text-[1.5rem] font-semibold leading-tight tracking-[-0.04em] sm:text-[1.75rem]">
                 Facts, opinion, and evidence are shown separately.
               </h2>
 
@@ -301,7 +301,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-7">
+      <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
         <div className="grid gap-4 md:grid-cols-4">
           <Stat value={formatCount(profileCount)} label="Published profiles" />
           <Stat value={formatCount(sourceCount)} label="Cited sources" />
@@ -311,7 +311,7 @@ export default async function HomePage() {
       </section>
 
       <section className="border-y border-[#d9d3c7] bg-[#ebe6dc]">
-        <div className="mx-auto max-w-7xl px-6 py-9">
+        <div className="mx-auto max-w-7xl px-4 py-9 sm:px-6">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#a65336]">
