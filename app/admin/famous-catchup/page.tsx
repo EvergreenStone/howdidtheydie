@@ -23,7 +23,8 @@ type ResultRow = {
   message?: string;
 };
 
-const STARTER_NAMES = `Michael Jackson
+const STARTER_NAMES = `Chuck Norris
+Michael Jackson
 Elvis Presley
 Princess Diana
 Whitney Houston
@@ -60,12 +61,376 @@ Lucille Ball
 Frank Sinatra
 Dean Martin
 Johnny Cash
+June Carter Cash
 Ray Charles
 James Brown
 Tupac Shakur
 The Notorious B.I.G.
+Nipsey Hussle
 Mac Miller
-DMX`;
+DMX
+Coolio
+Olivia Newton-John
+Suzanne Somers
+Doris Day
+Angela Lansbury
+Maggie Smith
+James Earl Jones
+Donald Sutherland
+Shelley Duvall
+Richard Simmons
+Shannen Doherty
+Bob Newhart
+Gena Rowlands
+Kris Kristofferson
+Quincy Jones
+Teri Garr
+Phil Donahue
+Louis Gossett Jr.
+Carl Weathers
+Norman Lear
+Andre Braugher
+Ryan O'Neal
+Piper Laurie
+Jimmy Buffett
+Tony Bennett
+Sinéad O'Connor
+Paul Reubens
+Angus Cloud
+Treat Williams
+Raquel Welch
+Lisa Marie Presley
+Jeff Beck
+Barbara Walters
+Kirstie Alley
+Christine McVie
+Irene Cara
+Leslie Jordan
+Loretta Lynn
+Anne Heche
+Nichelle Nichols
+James Caan
+Ray Liotta
+Gilbert Gottfried
+Sidney Poitier
+Stephen Sondheim
+Dean Stockwell
+Colin Powell
+Norm Macdonald
+Ed Asner
+Charlie Watts
+Dusty Hill
+Richard Donner
+Ned Beatty
+Clarence Williams III
+Gavin MacLeod
+Charles Grodin
+Olympia Dukakis
+Jessica Walter
+George Segal
+Larry King
+Cloris Leachman
+Cicely Tyson
+Christopher Plummer
+Larry Flynt
+Rush Limbaugh
+Prince Philip
+Helen McCrory
+Alex Trebek
+Eddie Van Halen
+Ruth Bader Ginsburg
+Regis Philbin
+Carl Reiner
+Joel Schumacher
+Ian Holm
+Fred Willard
+Jerry Stiller
+Little Richard
+Roy Horn
+John Prine
+Adam Schlesinger
+Kenny Rogers
+Max von Sydow
+Kirk Douglas
+Neil Peart
+Juice WRLD
+Caroll Spinney
+Shelley Morrison
+Danny Aiello
+Marie Fredriksson
+Robert Forster
+Ginger Baker
+Ric Ocasek
+Eddie Money
+Peter Fonda
+Toni Morrison
+Rutger Hauer
+Rip Torn
+Cameron Boyce
+Beth Chapman
+Dr. John
+Tim Conway
+Peggy Lipton
+Luke Perry
+Peter Tork
+Albert Finney
+Kristoff St. John
+Carol Channing
+Penny Marshall
+George H. W. Bush
+Stan Lee
+Burt Reynolds
+Anthony Bourdain
+Kate Spade
+Margot Kidder
+Verne Troyer
+R. Lee Ermey
+Stephen Hawking
+Billy Graham
+Dolores O'Riordan
+John Mahoney
+Mark E. Smith
+Tom Petty
+Hugh Hefner
+Harry Dean Stanton
+Jerry Lewis
+Glen Campbell
+Sam Shepard
+Chester Bennington
+George A. Romero
+Martin Landau
+Adam West
+Roger Moore
+Chris Cornell
+Erin Moran
+Don Rickles
+Chuck Berry
+Bill Paxton
+Mary Tyler Moore
+John Hurt
+Leonard Cohen
+Robert Vaughn
+Kenny Baker
+Garry Marshall
+Elie Wiesel
+Anton Yelchin
+Patty Duke
+George Kennedy
+Lemmy Kilmister
+Natalie Cole
+Scott Weiland
+Maureen O'Hara
+Wes Craven
+Omar Sharif
+Christopher Lee
+B.B. King
+Ben E. King
+Leonard Nimoy
+Lesley Gore
+Joe Cocker
+Mike Nichols
+Jan Hooks
+Lauren Bacall
+James Garner
+Elaine Stritch
+Casey Kasem
+Ruby Dee
+Maya Angelou
+Bob Hoskins
+Mickey Rooney
+Harold Ramis
+Philip Seymour Hoffman
+Pete Seeger
+Shirley Temple
+Nelson Mandela
+Peter O'Toole
+Lou Reed
+Marcia Wallace
+Ed Lauter
+Tom Clancy
+Ray Dolby
+Jean Stapleton
+Roger Ebert
+Margaret Thatcher
+Annette Funicello
+Richard Griffiths
+Bonnie Franklin
+Mindy McCready
+Jack Klugman
+Larry Hagman
+Andy Griffith
+Ernest Borgnine
+Sherman Hemsley
+Phyllis Diller
+Michael Clarke Duncan
+Neil Armstrong
+George McGovern
+Etta James
+Don Cornelius
+Joe Paterno
+Andy Rooney
+Jack Kevorkian
+Peter Falk
+Clarence Clemons
+Elizabeth Taylor
+Nate Dogg
+Geraldine Ferraro
+Leslie Nielsen
+Tony Curtis
+Barbara Billingsley
+Eddie Fisher
+Dennis Hopper
+Gary Coleman
+Lynn Redgrave
+Dixie Carter
+John Forsythe
+Corey Haim
+Alexander McQueen
+J.D. Salinger
+Brittany Murphy
+Ed McMahon
+David Carradine
+Bea Arthur
+Natasha Richardson
+Paul Newman
+Isaac Hayes
+Bernie Mac
+Charlton Heston
+George Carlin
+Tim Russert
+Roy Scheider
+Ike Turner
+Evel Knievel
+Marcel Marceau
+Luciano Pavarotti
+Merv Griffin
+Beverly Sills
+Charles Nelson Reilly
+Yvonne De Carlo
+Peter Boyle
+Robert Altman
+Jack Palance
+Ed Bradley
+Red Buttons
+Don Knotts
+Dennis Weaver
+Shelley Winters
+Richard Pryor
+Pat Morita
+Rosa Parks
+Nipsey Russell
+Don Adams
+Bob Denver
+Peter Jennings
+Luther Vandross
+Anne Bancroft
+Eddie Albert
+Johnny Carson
+Jerry Orbach
+Christopher Reeve
+Janet Leigh
+Ronald Reagan
+Tony Randall
+Marlon Brando
+Rodney Dangerfield
+Julia Child
+Katharine Hepburn
+Gregory Peck
+Fred Rogers
+Richard Harris
+John Entwistle
+Dudley Moore
+Billy Wilder
+Milton Berle
+George Harrison
+Jack Lemmon
+Carroll O'Connor
+Anthony Quinn
+Dale Earnhardt
+John Gielgud
+Walter Matthau
+Charles Schulz
+Wilt Chamberlain
+Stanley Kubrick
+Gene Siskel
+Chris Farley
+John Denver
+Mother Teresa
+Gianni Versace
+Jacques Cousteau
+George Burns
+Ella Fitzgerald
+Gene Kelly
+Jerry Garcia
+Mickey Mantle
+Richard Nixon
+Kurt Cobain
+John Candy
+River Phoenix
+Frank Zappa
+Thurgood Marshall
+Sammy Davis Jr.
+Jim Henson
+Gilda Radner
+Salvador Dalí
+Roy Orbison
+John Huston
+Andy Warhol
+Liberace
+Cary Grant
+Desi Arnaz
+Rock Hudson
+Yul Brynner
+Orson Welles
+John Belushi
+Grace Kelly
+Henry Fonda
+Natalie Wood
+Steve McQueen
+Alfred Hitchcock
+John Wayne
+Bing Crosby
+Groucho Marx
+Charlie Chaplin
+Bruce Lee
+Jim Croce
+Harry S. Truman
+J. Edgar Hoover
+Louis Armstrong
+Jim Morrison
+Janis Joplin
+Jimi Hendrix
+Robert F. Kennedy
+Martin Luther King Jr.
+Walt Disney
+Nat King Cole
+Winston Churchill
+Ernest Hemingway
+Clark Gable
+Buddy Holly
+James Dean
+Albert Einstein
+Joseph Stalin
+George VI
+Babe Ruth
+Mahatma Gandhi
+Franklin D. Roosevelt
+Anne Frank
+Lou Gehrig
+Amelia Earhart
+Will Rogers
+Marie Curie
+Thomas Edison
+Harry Houdini
+Woodrow Wilson
+Alexander Graham Bell
+Theodore Roosevelt
+Mark Twain
+Queen Victoria
+Abraham Lincoln
+Edgar Allan Poe
+Ludwig van Beethoven
+Wolfgang Amadeus Mozart`;
 
 function slugify(value: string) {
   return value
