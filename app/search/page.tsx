@@ -195,10 +195,10 @@ export default async function SearchPage({
                   Try another spelling, or create a new profile for this person.
                 </p>
                 <a
-                  href="/add-person"
+                  href={`/add-person?name=${encodeURIComponent(query)}`}
                   className="mt-6 inline-flex rounded-xl bg-[#a65336] px-6 py-3.5 font-semibold text-white"
                 >
-                  + Add this person
+                  + Add this person to the database
                 </a>
               </div>
             )}

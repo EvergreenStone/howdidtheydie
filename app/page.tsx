@@ -214,6 +214,16 @@ export default async function HomePage() {
                 </button>
               </form>
 
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-[#66706d]">
+                <span>Can’t find someone?</span>
+                <a
+                  href="/add-person"
+                  className="font-semibold text-[#a65336] hover:underline"
+                >
+                  Add them to HowDidTheyDie.org →
+                </a>
+              </div>
+
               {popular.length > 0 && (
                 <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-sm lg:flex-nowrap lg:whitespace-nowrap">
                   <span className="font-semibold text-[#66706d]">
