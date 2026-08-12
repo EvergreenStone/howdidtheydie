@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 function createSlug(value: string) {
   return value
@@ -23,8 +23,6 @@ function normalizeUrl(value: string) {
 
 export default function AddPersonPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
   const supabase = useMemo(
     () =>
       createBrowserClient(
@@ -48,9 +46,10 @@ export default function AddPersonPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const suggestedName = searchParams.get("name")?.trim();
-    if (suggestedName && !name) setName(suggestedName);
-  }, [searchParams, name]);
+    const params = new URLSearchParams(window.location.search);
+    const suggestedName = params.get("name")?.trim();
+    if (suggestedName) setName((current) => current || suggestedName);
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
