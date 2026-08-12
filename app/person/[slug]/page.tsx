@@ -22,6 +22,8 @@ type Person = {
   image_author: string | null;
   image_license: string | null;
   image_license_url: string | null;
+  location_text: string | null;
+  submitted_source_url: string | null;
 };
 
 type Source = {
@@ -97,7 +99,7 @@ export default async function PersonPage({
   const { data, error } = await supabase
     .from("people")
     .select(
-      "id, name, slug, birth_date, death_date, occupation, biography, official_cause, official_manner, profile_type, status, image_url, image_source_url, image_author, image_license, image_license_url",
+      "id, name, slug, birth_date, death_date, occupation, biography, official_cause, official_manner, profile_type, status, image_url, image_source_url, image_author, image_license, image_license_url, location_text, submitted_source_url",
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -183,6 +185,9 @@ export default async function PersonPage({
   );
 
   const totalSources = publishedSources.length;
+  const isEverydayPerson = person.profile_type === "private";
+  const findingLabel = isEverydayPerson ? "Reported cause" : "Official cause";
+  const mannerLabel = isEverydayPerson ? "Reported manner" : "Official manner";
 
   return (
     <main className="min-h-screen bg-[#f4f1ea] text-[#1d2a2a]">
@@ -271,8 +276,8 @@ export default async function PersonPage({
                 <span className="rounded-full bg-[#e8efe9] px-3 py-1 text-xs font-semibold text-[#315a46]">
                   Published profile
                 </span>
-                <span className="rounded-full border border-[#d7cfc3] px-3 py-1 text-xs font-semibold capitalize text-[#66706d]">
-                  {person.profile_type}
+                <span className="rounded-full border border-[#d7cfc3] px-3 py-1 text-xs font-semibold text-[#66706d]">
+                  {isEverydayPerson ? "Everyday person" : "Public / notable person"}
                 </span>
               </div>
 
@@ -284,6 +289,12 @@ export default async function PersonPage({
                 {formatDate(person.birth_date)} – {formatDate(person.death_date)}
                 {person.occupation ? ` · ${person.occupation}` : ""}
               </p>
+
+              {person.location_text && (
+                <p className="mt-2 text-base font-medium text-[#66706d]">
+                  {person.location_text}
+                </p>
+              )}
 
               {person.biography && (
                 <p className="mt-6 max-w-3xl text-lg leading-8 text-[#586260]">
@@ -300,14 +311,14 @@ export default async function PersonPage({
 
             <div className="mt-5 space-y-4">
               <div>
-                <p className="text-sm text-[#bdc8c5]">Official cause</p>
+                <p className="text-sm text-[#bdc8c5]">{findingLabel}</p>
                 <p className="mt-1 text-xl font-semibold">
                   {person.official_cause || "Not yet documented"}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-[#bdc8c5]">Official manner</p>
+                <p className="text-sm text-[#bdc8c5]">{mannerLabel}</p>
                 <p className="mt-1 text-xl font-semibold">
                   {person.official_manner || "Not yet documented"}
                 </p>
@@ -335,24 +346,68 @@ export default async function PersonPage({
 
       <section className="mx-auto grid max-w-7xl gap-8 px-6 py-9 lg:grid-cols-[1fr_340px]">
         <div className="space-y-8">
-          <article className="rounded-[26px] border border-[#d2ccc1] bg-white p-8 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#a65336]">
-              Official finding
-            </p>
+          <article className="rounded-[26px] border border-[#d2ccc1] bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#a65336]">
+                  {isEverydayPerson ? "Reported facts" : "Official finding"}
+                </p>
 
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">
-              Officially reported cause of death
-            </h2>
+                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">
+                  What is publicly documented?
+                </h2>
+              </div>
 
-            <p className="mt-6 text-2xl font-semibold">
-              {person.official_cause || "No official cause has been added yet."}
-            </p>
+              {isEverydayPerson && (
+                <span className="w-fit rounded-full bg-[#f4f1ea] px-3 py-1.5 text-xs font-semibold text-[#66706d]">
+                  Community-added profile
+                </span>
+              )}
+            </div>
 
-            {person.official_manner && (
-              <p className="mt-3 text-lg text-[#66706d]">
-                Manner of death: {person.official_manner}
-              </p>
-            )}
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="rounded-2xl bg-[#f8f6f1] p-5">
+                <p className="text-sm font-semibold text-[#66706d]">{findingLabel}</p>
+                <p className="mt-2 text-xl font-semibold">
+                  {person.official_cause || "Not publicly documented"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-[#f8f6f1] p-5">
+                <p className="text-sm font-semibold text-[#66706d]">{mannerLabel}</p>
+                <p className="mt-2 text-xl font-semibold">
+                  {person.official_manner || "Not publicly documented"}
+                </p>
+              </div>
+            </div>
+
+            {person.submitted_source_url ? (
+              <div className="mt-5 rounded-2xl border border-[#ded8ce] p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#a65336]">
+                  Starting source
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[#66706d]">
+                  This public source was supplied when the profile was submitted.
+                  It does not automatically verify every claim on the page.
+                </p>
+                <a
+                  href={person.submitted_source_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#a65336] hover:underline"
+                >
+                  View obituary or source →
+                </a>
+              </div>
+            ) : isEverydayPerson ? (
+              <div className="mt-5 rounded-2xl bg-[#f4f1ea] p-5">
+                <p className="font-semibold">No starting source is attached yet.</p>
+                <p className="mt-1 text-sm leading-6 text-[#66706d]">
+                  Help improve the record by suggesting a correction or submitting
+                  an analysis supported by public sources.
+                </p>
+              </div>
+            ) : null}
           </article>
 
           <article className="rounded-[26px] border border-[#d2ccc1] bg-white p-8 shadow-sm">
@@ -362,8 +417,13 @@ export default async function PersonPage({
                   Community analysis
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">
-                  Competing explanations and contributing factors
+                  What does the evidence suggest?
                 </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-[#66706d]">
+                  Anyone can submit a different explanation, but each analysis stands
+                  on its own and should be supported with visible sources. Community
+                  confidence is opinion; evidence strength reflects the supporting record.
+                </p>
               </div>
 
               <a
@@ -375,8 +435,18 @@ export default async function PersonPage({
             </div>
 
             {analyses.length === 0 ? (
-              <div className="mt-7 rounded-2xl bg-[#f4f1ea] p-6">
-                <p className="font-semibold">No community analyses published yet.</p>
+              <div className="mt-7 rounded-2xl border border-dashed border-[#cfc6b8] bg-[#f8f6f1] p-6 sm:p-7">
+                <p className="text-lg font-semibold">No community analysis has been published yet.</p>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66706d]">
+                  If the reported explanation is incomplete, disputed, or missing,
+                  you can submit a different analysis and show the sources that support it.
+                </p>
+                <a
+                  href={`/person/${person.slug}/add-analysis`}
+                  className="mt-5 inline-flex rounded-xl bg-[#a65336] px-5 py-3 text-sm font-semibold text-white"
+                >
+                  Submit the first analysis
+                </a>
               </div>
             ) : (
               <div className="mt-7 space-y-6">
@@ -556,9 +626,10 @@ export default async function PersonPage({
           <div className="rounded-[26px] bg-[#ebe6dc] p-6">
             <p className="text-sm font-semibold">Transparency notice</p>
             <p className="mt-3 text-sm leading-6 text-[#66706d]">
-              Community confidence measures user opinion. Evidence strength
-              measures approved supporting sources and community source-quality
-              ratings. Neither replaces an official finding.
+              Reported facts and community analysis are kept separate. Community
+              confidence measures user opinion. Evidence strength measures approved
+              supporting sources and community source-quality ratings. A popular
+              analysis is not automatically a verified fact.
             </p>
           </div>
         </aside>
