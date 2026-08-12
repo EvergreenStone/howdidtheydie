@@ -134,10 +134,30 @@ export default async function SearchPage({
             </div>
 
             {!exactMatch && results.length > 0 && (
-              <div className="mt-5 rounded-xl border border-[#e0d8cc] bg-[#efe9df] px-4 py-3 text-sm text-[#66706d]">
-                We didn’t find that exact spelling, so we’re showing the closest
-                names in the database.
-              </div>
+              <>
+                <div className="mt-5 rounded-xl border border-[#e0d8cc] bg-[#efe9df] px-4 py-3 text-sm text-[#66706d]">
+                  We didn’t find an exact match, so we’re showing the closest
+                  names in the database.
+                </div>
+
+                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#d7cec0] bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-[#1d2a2a]">
+                      Don’t see the person you’re looking for?
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-[#66706d]">
+                      Add {query ? `“${query}”` : "them"} to HowDidTheyDie.org. It only takes about a minute.
+                    </p>
+                  </div>
+
+                  <a
+                    href={`/add-person?name=${encodeURIComponent(query)}`}
+                    className="inline-flex shrink-0 items-center justify-center rounded-xl bg-[#a65336] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#91472f]"
+                  >
+                    + Add this person
+                  </a>
+                </div>
+              </>
             )}
 
             {results.length > 0 ? (
