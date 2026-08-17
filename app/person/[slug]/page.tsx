@@ -28,7 +28,8 @@ type Person = {
 
 type Source = {
   id: string;
-  analysis_id: string;
+  analysis_id: string | null;
+  person_id?: string | null;
   title: string;
   publisher: string | null;
   url: string;
@@ -79,6 +80,9 @@ function sourceTypeLabel(value: string) {
     interview: "Interview",
     book_documentary: "Book / documentary",
     academic: "Academic source",
+    obituary: "Obituary / death notice",
+    family_statement: "Family / representative statement",
+    government_record: "Government record",
     other: "Other source",
   };
   return labels[value] ?? "Source";
@@ -108,6 +112,16 @@ export default async function PersonPage({
   if (error || !data) notFound();
 
   const person = data as Person;
+
+  const { data: directSourceData } = await supabase
+    .from("sources")
+    .select("id, analysis_id, person_id, title, publisher, url, source_type, notes")
+    .eq("person_id", person.id)
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+
+  const directSources =
+    (directSourceData ?? []) as Omit<Source, "qualityScore" | "qualityVoteCount">[];
 
   const { data: analysisData } = await supabase
     .from("analyses")
@@ -155,6 +169,25 @@ export default async function PersonPage({
     }),
   );
 
+  const directSourcesWithQuality: Source[] = await Promise.all(
+    directSources.map(async (source) => {
+      const { data: qualityData } = await supabase.rpc(
+        "get_source_vote_summary",
+        { p_source_id: source.id },
+      );
+
+      const qualitySummary = Array.isArray(qualityData)
+        ? qualityData[0]
+        : qualityData;
+
+      return {
+        ...source,
+        qualityScore: Number(qualitySummary?.quality_score ?? 0),
+        qualityVoteCount: Number(qualitySummary?.vote_count ?? 0),
+      };
+    }),
+  );
+
   const analyses: Analysis[] = await Promise.all(
     rawAnalyses.map(async (analysis) => {
       const [{ data: voteData }, { data: evidenceData }] = await Promise.all([
@@ -184,7 +217,7 @@ export default async function PersonPage({
     }),
   );
 
-  const totalSources = publishedSources.length;
+  const totalSources = publishedSources.length + directSourcesWithQuality.length;
   const isEverydayPerson = person.profile_type === "private";
   const findingLabel = isEverydayPerson ? "Reported cause" : "Official cause";
   const mannerLabel = isEverydayPerson ? "Reported manner" : "Official manner";
@@ -408,6 +441,84 @@ export default async function PersonPage({
                 </p>
               </div>
             ) : null}
+          </article>
+
+          <article className="rounded-[26px] border border-[#d2ccc1] bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#a65336]">
+                  Reported / official sources
+                </p>
+                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">
+                  Where do the reported facts come from?
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-[#66706d]">
+                  These sources document the death, reported cause, manner, or other
+                  basic facts. They are kept separate from sources supporting a
+                  community analysis.
+                </p>
+              </div>
+
+              <a
+                href={`/person/${person.slug}/add-source`}
+                className="inline-flex shrink-0 items-center justify-center rounded-xl bg-[#a65336] px-5 py-3 text-sm font-semibold text-white"
+              >
+                + Add source
+              </a>
+            </div>
+
+            {directSourcesWithQuality.length === 0 ? (
+              <div className="mt-6 rounded-2xl border border-dashed border-[#cfc6b8] bg-[#f8f6f1] p-5">
+                <p className="font-semibold">No reported-fact sources have been added yet.</p>
+                <p className="mt-1 text-sm leading-6 text-[#66706d]">
+                  Add an obituary, family statement, medical examiner record,
+                  law-enforcement statement, or reputable news report.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-6 grid gap-4">
+                {directSourcesWithQuality.map((source) => (
+                  <div
+                    key={source.id}
+                    className="rounded-2xl border border-[#ded8ce] bg-[#f8f6f1] p-5"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#a65336]">
+                          {sourceTypeLabel(source.source_type)}
+                        </p>
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 block text-lg font-semibold hover:text-[#a65336]"
+                        >
+                          {source.title} ↗
+                        </a>
+                        {source.publisher && (
+                          <p className="mt-1 text-sm text-[#66706d]">
+                            {source.publisher}
+                          </p>
+                        )}
+                        {source.notes && (
+                          <p className="mt-3 text-sm leading-6 text-[#586260]">
+                            {source.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="shrink-0">
+                        <SourceQuality
+                          sourceId={source.id}
+                          initialScore={source.qualityScore}
+                          initialVoteCount={source.qualityVoteCount}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
 
           <article className="rounded-[26px] border border-[#d2ccc1] bg-white p-8 shadow-sm">
